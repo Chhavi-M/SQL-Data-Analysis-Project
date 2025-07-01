@@ -1,0 +1,21 @@
+/*
+=====================================================================================
+Create Database
+
+Purpose: This script creates a new database named 'blinkitdatawarehouse'.
+         If the database exists, it is dropped and recreated.
+	
+Warning: Running this script will drop the entire 'blinkitdatawarehouse' database if it exists. 
+         All data in the database will be permanently deleted. Proceed with caution 
+         and ensure you have proper backups before running this script.
+=====================================================================================
+*/
+
+-- Drop and recreate Database 'BlinkitDataWarehouse'
+
+DROP DATABASE IF EXISTS blinkitdatawarehouse;
+CREATE DATABASE BlinkitDataWarehouse;
+
+-- Use Database 'BlinkitDataWarehouse'
+
+USE BlinkitDataWarehouse;
