@@ -1,0 +1,81 @@
+/*
+=====================================================================================
+DDL Script: Create Silver Tables
+
+Purpose: This script creates tables for the silver layer,
+         dropping the tables if they already exists.
+
+Warning: The Script will drop the tables along with the data if it exists already.
+=====================================================================================
+*/
+
+DROP TABLE IF EXISTS silver_products;
+CREATE TABLE silver_products (
+    product_id INT PRIMARY KEY,
+    product_name VARCHAR(50),
+    category VARCHAR(50),
+    brand VARCHAR(50),
+    price FLOAT,
+    mrp FLOAT,
+    margin_percentage FLOAT,
+    shelf_life_days INT,
+    min_stock_level INT,
+    max_stock_level INT
+);
+
+DROP TABLE IF EXISTS silver_orders;
+CREATE TABLE silver_orders (
+    order_id VARCHAR(50) PRIMARY KEY,
+    customer_id INT,
+    order_date DATETIME,
+    promised_delivery_time DATETIME,
+    actual_delivery_time DATETIME,
+    delivery_status VARCHAR(50),
+    payment_method VARCHAR(50),
+    delivery_partner_id INT,
+    store_id INT
+);
+
+DROP TABLE IF EXISTS silver_order_items;
+CREATE TABLE silver_order_items (
+    order_id VARCHAR(50),
+    product_id INT,
+    quantity INT,
+    unit_price FLOAT
+);
+
+DROP TABLE IF EXISTS silver_customers;
+CREATE TABLE silver_customers (
+    customer_id VARCHAR(50) PRIMARY KEY,
+    customer_name VARCHAR(50),
+    email VARCHAR(50),
+    phone VARCHAR(50),
+    address VARCHAR(2000),
+    area VARCHAR(50),
+    pincode INT,
+    registration_date DATE
+);
+
+DROP TABLE IF EXISTS silver_customer_feedback;
+CREATE TABLE silver_customer_feedback (
+    feedback_id VARCHAR(50) PRIMARY KEY,
+    order_id VARCHAR(50),
+    customer_id VARCHAR(50),
+    rating INT,
+    feedback_text VARCHAR(2000),
+    feedback_category VARCHAR(2000),
+    sentiment VARCHAR(50),
+    feedback_date DATE
+);
+
+DROP TABLE IF EXISTS silver_delivery_performance;
+CREATE TABLE silver_delivery_performance (
+    order_id VARCHAR(50),
+    deliver_partner_id INT,
+    promised_time DATETIME,
+    actual_time DATETIME,
+    delivery_time_minutes INT,
+    distance_km FLOAT,
+    delivery_status VARCHAR(50),
+    reasons_if_delayed VARCHAR(50)
+);
