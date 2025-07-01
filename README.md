@@ -1,4 +1,5 @@
 📊 SQL Data Analysis Project
+
 A structured SQL project focused on data cleaning, modeling, and analysis using MySQL. It works with real-world order and feedback data to create a relational model and extract meaningful insights.
 
 Key highlights include:
