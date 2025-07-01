@@ -1,0 +1,85 @@
+/*
+===============================================================================
+DDL Script: Create Gold Views
+
+Purpose: This script creates views for the Gold layer.
+  
+         Each view performs transformations and combines data from the Silver layer 
+         to produce a clean, enriched, and business-ready dataset.
+===============================================================================
+*/
+
+-- Create view for product_catalog
+
+CREATE VIEW gold_product_catalog AS
+SELECT 
+product_id,
+product_name,
+category AS product_category,
+brand AS product_brand,
+price AS unit_price,
+mrp,
+margin_percentage,
+shelf_life_days,
+min_stock_level AS min_stock_maintained,
+max_stock_level AS max_stock_maintained
+FROM silver_products;
+
+-- Create view for order_details
+
+CREATE VIEW gold_order_details AS
+SELECT
+o.order_id,
+o.customer_id,
+oi.product_id,
+oi.quantity AS quantity_ordered,
+oi.unit_price,
+p.mrp AS product_mrp,
+o.order_date,
+o.promised_delivery_time,
+o.actual_delivery_time,
+o.delivery_status,
+o.payment_method,
+o.delivery_partner_id,
+o.store_id
+FROM silver_orders o
+LEFT JOIN silver_order_items oi
+ON o.order_id = oi.order_id
+LEFT JOIN silver_products p
+ON oi.product_id = p.product_id;
+
+-- Create view for customer_profile
+
+CREATE VIEW gold_customer_profile AS
+SELECT
+customer_id,
+customer_name,
+email,
+phone,
+address,
+area,
+pincode,
+registration_date
+FROM silver_customers;
+
+-- Create view for delivery-performance
+
+CREATE VIEW gold_order_performance AS
+SELECT
+ROW_NUMBER() OVER (ORDER BY cf.order_id) AS performance_id, /*Unique row identifier for order-performance records*/
+cf.order_id,
+cf.customer_id,
+dp.distance_km,
+dp.delivery_time_minutes AS diff_delivery_time,
+dp.delivery_status,
+dp.reasons_if_delayed,
+cf.feedback_category,
+cf.rating AS customer_rating,
+cf.sentiment AS customer_sentiment,
+cf.feedback_text,
+cf.feedback_id AS customer_feedback_id,
+cf.feedback_date AS customer_feedback_date,
+dp.deliver_partner_id
+FROM silver_customer_feedback cf
+LEFT JOIN silver_delivery_performance dp
+ON cf.order_id = dp.order_id;
