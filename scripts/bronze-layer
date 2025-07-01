@@ -3,7 +3,7 @@
 DDL Script: Create Bronze Tables
 
 Purpose: This script creates tables for the bronze layer,
-dropping the tables if they already exists.
+         dropping the tables if they already exists.
 
 Warning: The Script will drop the tables along with the data if it exists already.
 =====================================================================================
