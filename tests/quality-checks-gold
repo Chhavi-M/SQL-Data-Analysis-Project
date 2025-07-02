@@ -1,1 +1,80 @@
+/*
+===============================================================================
+Quality Checks - Gold Layer
 
+Purpose: This script performs quality checks to validate the integrity, consistency, 
+         and accuracy of the Gold Layer. 
+         These checks ensure:
+         - Uniqueness of Primary keys in tables.
+         - Referential integrity between tables.
+===============================================================================
+*/
+
+
+/* To check the quality of 'gold_product_catalog' */
+
+-- To check for nulls or duplicates in the Primary Key
+
+SELECT product_id, COUNT(*) AS Count
+FROM gold_product_catalog
+GROUP BY product_id
+HAVING product_id IS NULL OR Count>1;
+
+/* To check the quality of 'gold_customer_profile' */
+
+-- To check for nulls or duplicates in the Primary Key
+
+SELECT customer_id, COUNT(*) AS Count
+FROM gold_customer_profile
+GROUP BY customer_id
+HAVING customer_id IS NULL OR Count>1;
+
+/* To check the quality of 'gold_order_details' */
+
+-- To check for nulls or duplicates in the Primary Key
+
+SELECT order_id, COUNT(*) AS Count
+FROM gold_order_details
+GROUP BY order_id
+HAVING order_id IS NULL OR Count>1;
+
+-- To check for nulls or referential integrity: ensure all customer_ids in order_details table exist in customer_profile table
+
+SELECT customer_id
+FROM gold_order_details
+WHERE customer_id NOT IN ( SELECT customer_id
+						   FROM gold_customer_profile)
+				  OR customer_id IS NULL;
+
+-- To check for nulls or referential integrity: ensure all product_ids in order_details table exist in product_catalog table
+
+SELECT product_id
+FROM gold_order_details
+WHERE product_id NOT IN ( SELECT product_id
+						  FROM gold_product_catalog)
+				 OR product_id IS NULL;
+
+/* To check the quality of 'gold_order_performance' */
+
+-- To check for nulls or duplicates in the Primary Key
+
+SELECT performance_id, COUNT(*) AS Count
+FROM gold_order_performance
+GROUP BY performance_id
+HAVING performance_id IS NULL OR Count>1;
+
+-- To check for nulls or referential integrity: ensure all order_ids in order_performance table exist in order_details table
+
+SELECT order_id
+FROM gold_order_performance
+WHERE order_id NOT IN ( SELECT order_id
+						FROM gold_order_details)
+			   OR order_id IS NULL;
+
+-- To check for nulls or referential integrity: ensure all customer_ids in order_performance table exist in customer_profile table
+
+SELECT customer_id
+FROM gold_order_performance
+WHERE customer_id NOT IN ( SELECT customer_id
+						   FROM gold_customer_profile)
+				  OR customer_id IS NULL;
