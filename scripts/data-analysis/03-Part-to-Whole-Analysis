@@ -1,1 +1,74 @@
+/*
+===============================================================================
+Part-to-Whole Analysis
 
+Purpose: To compare performance or metrics across dimensions or time periods
+===============================================================================
+*/
+
+-- Which product categories contribute the most to overall sales?
+WITH category_sales AS (SELECT p.product_category, 
+							                 ROUND(SUM(o.quantity_ordered*o.product_mrp),2) AS total_sales
+            						FROM gold_product_catalog p
+            						LEFT JOIN gold_order_details o
+            						ON p.product_id = o.product_id
+            						GROUP BY p.product_category
+                        )
+SELECT product_category,
+       total_sales,
+       ROUND(SUM(total_sales) OVER()) AS overall_sales,
+       CONCAT(ROUND((total_sales/SUM(total_sales) OVER())*100,2),'%') AS percentage_of_total
+FROM category_sales
+ORDER BY ROUND((total_sales/SUM(total_sales) OVER())*100,2) DESC;
+
+-- Which product brand contribute the most to overall sales?
+WITH brand_sales AS (SELECT p.product_brand, 
+							              ROUND(SUM(o.quantity_ordered*o.product_mrp),2) AS total_sales
+          					 FROM gold_product_catalog p
+          					 LEFT JOIN gold_order_details o
+          					 ON p.product_id = o.product_id
+          					 GROUP BY p.product_brand
+          					 )
+SELECT product_brand,
+       total_sales,
+       ROUND(SUM(total_sales) OVER()) AS overall_sales,
+       CONCAT(ROUND((total_sales/SUM(total_sales) OVER())*100,2),'%') AS percentage_of_total
+FROM brand_sales
+ORDER BY ROUND((total_sales/SUM(total_sales) OVER())*100,2) DESC;
+
+-- What is the overall delay rate in order fulfillment?
+WITH delivery_status_summary AS (SELECT order_id,
+                                        delivery_status,
+                                        CASE
+                                        WHEN delivery_status = 'On Time' THEN delivery_status
+                                        ELSE 'Delayed'
+                                        END AS delivery_type
+                								 FROM gold_order_details
+                								 )
+SELECT delivery_type,
+       CONCAT(ROUND(COUNT(order_id) * 100/SUM(COUNT(order_id)) OVER (),2),'%') AS percentage_of_total
+FROM delivery_status_summary
+GROUP BY delivery_type;
+
+-- What share of delays in order fulfillment were minor versus major?
+WITH delayed_order_summary AS (SELECT order_id,
+								                      delivery_status
+							                 FROM gold_order_details
+                               WHERE delivery_status IN ('Slightly Delayed','Significantly Delayed')
+                               )
+SELECT delivery_status,
+       CONCAT(ROUND(COUNT(order_id)*100/SUM(COUNT(order_id)) OVER(),2),'%') AS percentage_of_total
+FROM delayed_order_summary
+GROUP BY delivery_status;
+
+-- What percentage of total payments were received through each payment mode?
+SELECT payment_method,
+       CONCAT(ROUND(COUNT(order_id)*100/SUM(COUNT(order_id)) OVER(),2),'%') AS percentage_of_total
+FROM gold_order_details
+GROUP BY payment_method;
+
+-- What percentage of total revenue was collected through each payment mode?
+SELECT payment_method,
+       CONCAT(ROUND(SUM(quantity_ordered*product_mrp)*100/SUM(SUM(quantity_ordered*product_mrp)) OVER(),2),'%') AS percentage_of_revenue
+FROM gold_order_details
+GROUP BY payment_method;
