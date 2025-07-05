@@ -1,1 +1,19 @@
+/*
+===============================================================================
+Change Over Time Analysis
 
+Purpose: - To track trends, growth, and changes in key metrics over time.
+===============================================================================
+*/
+
+-- Analyse sales performance over time
+SELECT YEAR(order_date) AS order_year,
+       MONTH(order_date) AS order_month_number,
+       DATE_FORMAT(order_date, '%M') AS order_month,
+       ROUND(SUM(quantity_ordered*product_mrp),2) AS total_sales,
+       COUNT(order_id) AS total_orders,
+       SUM(quantity_ordered) AS total_quantity_sold,
+       COUNT(DISTINCT customer_id) AS total_customers
+FROM gold_order_details
+GROUP BY 1,2,3
+ORDER BY 1,2,3;
