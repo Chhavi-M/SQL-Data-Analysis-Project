@@ -40,8 +40,8 @@ ORDER BY ROUND((total_sales/SUM(total_sales) OVER())*100,2) DESC;
 WITH delivery_status_summary AS (SELECT order_id,
                                         delivery_status,
                                         CASE
-                                        WHEN delivery_status = 'On Time' THEN delivery_status
-                                        ELSE 'Delayed'
+                                           WHEN delivery_status = 'On Time' THEN delivery_status
+                                           ELSE 'Delayed'
                                         END AS delivery_type
                 		 FROM gold_order_details
                 		 )
