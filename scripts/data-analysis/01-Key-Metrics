@@ -40,7 +40,7 @@ FROM gold_product_catalog;
 SELECT COUNT(customer_id) AS total_customers
 FROM gold_customer_profile;
 
--- Find the total customers who has placed an order
+-- Find the total customers who have placed an order
 SELECT COUNT(DISTINCT customer_id) AS active_customers
 FROM gold_order_details;
 
