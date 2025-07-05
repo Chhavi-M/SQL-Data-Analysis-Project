@@ -1,1 +1,85 @@
+/*
+===============================================================================
+Feedback & Delivery Performance Analysis
 
+Purpose: To analyze customer feedback and delivery data to understand
+         what kind of experiences customers are having, which feedback 
+         is most common, and how delivery distance or timing may affect it.
+===============================================================================
+*/
+
+-- Identify which rating was given most frequently by customers
+SELECT customer_rating,
+       COUNT(order_id) AS total_orders,
+       CONCAT(ROUND((COUNT(order_id)/SUM(COUNT(order_id)) OVER())*100,2),'%') AS order_share_percentage
+FROM gold_order_performance
+GROUP BY 1
+ORDER BY 1;
+
+-- Identify how customer ratings are distributed across different experience areas
+SELECT feedback_category,
+       customer_rating,
+       COUNT(order_id) AS total_orders,
+       CONCAT(ROUND((COUNT(order_id)/SUM(COUNT(order_id)) OVER(PARTITION BY feedback_category))*100,2),'%') AS order_share_percentage
+FROM gold_order_performance
+GROUP BY 1,2
+ORDER BY 1 ASC, 2 ASC;
+
+-- Identify which sentiment is most frequently expressed by customers
+SELECT customer_sentiment,
+       COUNT(order_id) AS total_orders,
+       CONCAT(ROUND((COUNT(order_id)/SUM(COUNT(order_id)) OVER())*100,2),'%') AS order_share_percentage
+FROM gold_order_performance
+GROUP BY 1
+ORDER BY 2 DESC;
+
+-- Identify the most common sentiment type across different service aspects
+SELECT feedback_category,
+       customer_sentiment,
+       COUNT(order_id) AS total_orders,
+       CONCAT(ROUND((COUNT(order_id)/SUM(COUNT(order_id)) OVER(PARTITION BY feedback_category))*100,2),'%') AS order_share_percentage
+FROM gold_order_performance
+GROUP BY 1,2
+ORDER BY 1 ASC, 2 ASC;
+
+-- Rank feedback texts based on how frequently they appear in customer responses
+SELECT feedback_text,
+       COUNT(order_id) AS count,
+       DENSE_RANK() OVER (ORDER BY COUNT(order_id) DESC) AS rank_by_volume
+FROM gold_order_performance
+GROUP BY feedback_text;
+
+-- Identify how delivery distance affects delivery time
+WITH delivery_distance_summary AS (SELECT distance_km,
+                                          delivery_status,
+                                          COUNT(order_id) AS order_count,
+                                          CASE
+                                          WHEN distance_km > 3 THEN 'Far'
+                                          WHEN distance_km <=1.5 THEN 'Near-by'
+                                          ELSE 'Moderate Distance'
+                                          END AS delivery_zone
+                								   FROM gold_order_performance
+                								   GROUP BY 1,2
+                								   )
+SELECT delivery_zone,
+	     delivery_status,
+       SUM(order_count) AS total_orders
+FROM delivery_distance_summary
+GROUP BY 1,2
+ORDER BY 1,2;
+
+-- Identify top complaints or praises for each product category
+SELECT * FROM (SELECT p.product_category,
+          					  f.feedback_text,
+          					  COUNT(f.order_id) AS order_count,
+          					  DENSE_RANK() OVER(PARTITION BY product_category ORDER BY COUNT(f.order_id) DESC) as rank_by_volumne
+      			   FROM gold_product_catalog p
+      			   LEFT JOIN gold_order_details o
+      			   ON p.product_id = o.product_id
+      			   LEFT JOIN gold_order_performance f
+      			   ON o.order_id = f.order_id
+      			   GROUP BY 1,2
+      			   ORDER BY 1,2, 3 DESC
+               )t
+WHERE rank_by_volumne<=5
+ORDER BY product_category, rank_by_volumne;
