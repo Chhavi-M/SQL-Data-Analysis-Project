@@ -1,1 +1,94 @@
+/*
+===============================================================================
+Data Segmentation Analysis
 
+Purpose: To group data into meaningful categories for targeted insights
+===============================================================================
+*/
+
+-- Group customers into three segments based on their spending behavior and life span
+-- and find the total number of customers by each group
+/*  - High-Value Loyalists: Customers with more than 12 months of history and spending more than INR7,000.
+	- Passive Loyalists: Customers with more than 12 months of history but spending less than INR7,000.
+	- New Customers: Customers with a lifespan less than 12 months.
+    - Inactive: Customers with spending 0.
+*/
+
+WITH customer_segment_summary AS (SELECT c.customer_id,
+                  									     c.customer_name,
+                  									     c.registration_date,
+                  									     TIMESTAMPDIFF(MONTH, c.registration_date, CURDATE()) AS lifespan_months,
+                  									     IFNULL(ROUND(SUM(o.quantity_ordered*o.product_mrp),2),0) AS total_spendings,
+                  									     CASE
+                  									     WHEN IFNULL(ROUND(SUM(o.quantity_ordered*o.product_mrp),2),0) = 0 THEN 'Inactive'
+                  									     WHEN TIMESTAMPDIFF(MONTH, c.registration_date, CURDATE()) < 12 THEN 'New Customer'
+                  									     WHEN TIMESTAMPDIFF(MONTH, c.registration_date, CURDATE()) >=12 AND 
+                  									     IFNULL(ROUND(SUM(o.quantity_ordered*o.product_mrp),2),0) <=7000 THEN 'Passive Loyalists'
+                  									     ELSE 'High-Value Loyalists'
+                  									     END AS customer_segment
+                									FROM gold_customer_profile c
+                									LEFT JOIN gold_order_details o
+                									ON c.customer_id = o.customer_id
+                									GROUP BY 1,2,3
+                									ORDER BY 5 DESC
+                									)
+SELECT customer_segment,
+       COUNT(customer_id) AS total_customers,
+	     CONCAT(ROUND(COUNT(customer_id)*100/SUM(COUNT(customer_id)) OVER(),2),'%') AS percent_of_customers
+FROM customer_segment_summary
+GROUP BY 1
+ORDER BY 2 DESC;
+
+-- How are products distributed across different price segments
+-- and which price tier contributes the most to overall sales?
+/*  - Budget Friendly: Products Priced Below INR500.
+	- Mid-Range Products: Products Priced Between INR501 and INR999
+	- High-Value Products: Products Priced Above INR1000.
+*/
+
+WITH product_price_segmentation AS (SELECT product_id,
+                                           product_name,
+										                       mrp,
+                                           CASE
+                                           WHEN mrp <=500 THEN 'Budget Friendly Product'
+                                           WHEN mrp >=1000 THEN 'High-Value Products'
+										                       ELSE 'Mid-Range Products'
+                                           END AS product_segment
+                                    FROM gold_product_catalog
+                                    )
+SELECT ps.product_segment,
+       COUNT(DISTINCT ps.product_id) AS total_product_count,
+       CONCAT(ROUND((SUM(o.quantity_ordered*product_mrp)*100)/SUM(SUM(o.quantity_ordered*product_mrp)) OVER(),2),'%') AS revenue_contribution
+FROM product_price_segmentation ps
+LEFT JOIN gold_order_details o
+ON ps.product_id = o.product_id
+GROUP BY 1
+ORDER BY 3 DESC;
+
+-- How do different order count products contribute to overall product mix and revenue?
+/*  - Hot Zone: Order count 120 or above.
+	- Warm Zone: Order Count between 50-120.
+	- Cold Zone: Order count 50 or below.
+*/
+
+WITH product_popularity AS (SELECT  p.product_name,
+                                    COUNT(o.order_id) AS order_count,
+                                    CASE
+                                    WHEN COUNT(o.order_id) <=50 THEN 'Cold Zone'
+                                    WHEN COUNT(o.order_id) >=120 THEN 'Hot Zone'
+                                    ELSE 'Warm Zone'
+                                    END AS product_popularity_zone,
+                                    ROUND(SUM(o.quantity_ordered*o.product_mrp),2) AS revenue_generated
+              							FROM gold_product_catalog p
+              							LEFT JOIN gold_order_details o
+              							ON p.product_id = o.product_id
+              							GROUP BY 1
+              							ORDER BY 2
+              							)
+SELECT product_popularity_zone,
+       COUNT(product_name) AS product_count,
+       SUM(order_count) AS total_orders,
+       CONCAT(ROUND((SUM(revenue_generated)/SUM(SUM(revenue_generated)) OVER())*100,2),'%') AS revenue_contribution
+FROM product_popularity
+GROUP BY 1
+ORDER BY 3 DESC;
