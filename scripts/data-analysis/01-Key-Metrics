@@ -46,7 +46,7 @@ FROM gold_order_details;
 
 -- Find the gross margin %
 SELECT CONCAT(ROUND(((total_sales-total_cost)/total_sales)*100,2),'%') AS gross_margin_percent
-FROM ( SELECT SUM(quantity_ordered*product_mrp) AS total_sales,
-              SUM(quantity_ordered*unit_price) AS total_cost
-       FROM gold_order_details
-       )t;
+FROM (SELECT SUM(quantity_ordered*product_mrp) AS total_sales,
+             SUM(quantity_ordered*unit_price) AS total_cost
+      FROM gold_order_details
+      )t;
