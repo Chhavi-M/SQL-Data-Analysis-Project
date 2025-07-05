@@ -28,7 +28,7 @@ SELECT payment_method,
 FROM gold_order_details
 GROUP BY payment_method;
 
--- Find the total number of products offered
+-- How many distinct products are offered?
 SELECT COUNT(DISTINCT product_name) AS total_products
 FROM gold_product_catalog;
 
