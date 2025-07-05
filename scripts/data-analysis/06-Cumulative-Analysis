@@ -1,1 +1,21 @@
+/*
+===============================================================================
+Cumulative Analysis
 
+Purpose: - To calculate running totals or moving averages for key metrics.
+         - To track performance over time cumulatively.
+===============================================================================
+*/
+
+-- Calculate sales total per month, running total of sales and moving average price over time
+SELECT order_date,
+       total_sales,
+	     ROUND(SUM(total_sales) OVER(PARTITION BY YEAR(order_date) ORDER BY order_date),2) AS running_total_sales,
+       ROUND(AVG(avg_price) OVER(PARTITION BY YEAR(order_date) ORDER BY order_date),2) AS moving_average_price
+FROM (SELECT STR_TO_DATE(DATE_FORMAT(order_date, '%Y-%m-01'), '%Y-%m-%d') as order_date,
+              ROUND(SUM(quantity_ordered*product_mrp),2) AS total_sales,
+              ROUND(AVG(product_mrp),2) AS avg_price
+      FROM gold_order_details
+      GROUP BY 1
+      ORDER BY 1
+      )t;
