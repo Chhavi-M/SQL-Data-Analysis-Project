@@ -36,13 +36,6 @@ FROM gold_product_catalog;
 SELECT COUNT(DISTINCT product_brand) AS total_brands_available
 FROM gold_product_catalog;
 
--- Fine total brands available for each product
-SELECT DISTINCT product_name,
-       COUNT(product_brand) AS total_brands_available
-FROM gold_product_catalog
-GROUP BY 1
-ORDER BY 2 DESC;
-
 -- Find the total number of customers
 SELECT COUNT(customer_id) AS total_customers
 FROM gold_customer_profile;
