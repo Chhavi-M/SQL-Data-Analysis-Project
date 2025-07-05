@@ -1,0 +1,61 @@
+/*
+===================================================================================
+Performance Analysis (Month-over-Month)
+
+Purpose: To measure the performance of product categories and customers over time
+===================================================================================
+*/
+
+-- Analyze the monthly performance of product categories by comparing their sales 
+-- to both the average sales performance of the product category and the previous month's sales
+
+WITH monthly_category_sales AS (SELECT STR_TO_DATE(DATE_FORMAT(o.order_date, '%Y-%m-01'), '%Y-%m-%d') as order_date,
+									                     p.product_category,
+									                     ROUND(SUM(o.quantity_ordered*o.product_mrp),2) AS current_sales
+                								FROM gold_product_catalog p
+                								LEFT JOIN gold_order_details o
+                								ON p.product_id = o.product_id
+                								GROUP BY 1,2
+                								ORDER BY 2,1
+                                )
+SELECT order_date,
+       product_category,
+       current_sales,
+       ROUND(AVG(current_sales) OVER (PARTITION BY product_category),2) AS avg_sales,
+       ROUND(current_sales - AVG(current_sales) OVER (PARTITION BY product_category),2) AS deviation_from_average,
+       CASE 
+  	   WHEN current_sales - AVG(current_sales) OVER (PARTITION BY product_category) > 0 THEN 'Above Avg'
+  	   WHEN current_sales - AVG(current_sales) OVER (PARTITION BY product_category) < 0 THEN 'Below Avg'
+  	   ELSE 'Avg'
+  	   END AS avg_change,
+  	   LAG(current_sales) OVER (PARTITION BY product_category ORDER BY order_date) AS previous_month_sales,
+  	   ROUND(current_sales - LAG(current_sales) OVER (PARTITION BY product_category ORDER BY order_date),2) AS diff_in_sales,
+       CASE 
+  	   WHEN current_sales - LAG(current_sales) OVER (PARTITION BY product_category ORDER BY order_date) > 0 THEN 'Increase'
+  	   WHEN current_sales - LAG(current_sales) OVER (PARTITION BY product_category ORDER BY order_date) < 0 THEN 'Decrease'
+  	   ELSE 'No Change'
+  	   END AS change_in_sales,
+  	   CONCAT(ROUND(((current_sales - LAG(current_sales) OVER (PARTITION BY product_category ORDER BY order_date))/
+  	   LAG(current_sales) OVER (PARTITION BY product_category ORDER BY order_date))*100,2),'%') AS percent_sales_change
+FROM monthly_category_sales;
+
+-- MoM % change in total active customers to analyze customer base trends over time
+WITH monthly_active_customers AS ( SELECT STR_TO_DATE(DATE_FORMAT(order_date, '%Y-%m-01'), '%Y-%m-%d') as reporting_month,
+	                                        COUNT(DISTINCT customer_id) AS current_active_customers
+                                   FROM gold_order_details
+                								   GROUP BY 1
+                								   ORDER BY 1
+                                   )
+SELECT reporting_month,
+       current_active_customers,
+       LAG(current_active_customers) OVER( ORDER BY reporting_month) AS previous_month_active_customers,
+       current_active_customers-LAG(current_active_customers) OVER( ORDER BY reporting_month) AS diff_active_customers,
+       CASE
+       WHEN current_active_customers-LAG(current_active_customers) OVER( ORDER BY reporting_month)>0 THEN 'Increase'
+       WHEN current_active_customers-LAG(current_active_customers) OVER( ORDER BY reporting_month)<0 THEN 'Decrease'
+       ELSE 'No Change'
+       END AS change_active_customers,
+       CONCAT(ROUND((current_active_customers-LAG(current_active_customers) OVER( ORDER BY reporting_month))*100/
+       LAG(current_active_customers) OVER( ORDER BY reporting_month),2),'%') AS percent_change_active_customers
+FROM monthly_active_customers
+GROUP BY 1;
