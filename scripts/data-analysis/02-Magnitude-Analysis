@@ -24,7 +24,7 @@ ORDER BY 2 DESC;
 
 -- What is the average product cost and average product price in each category?
 SELECT product_category,
-	   ROUND(AVG(unit_price),2) AS avg_product_cost,
+       ROUND(AVG(unit_price),2) AS avg_product_cost,
        ROUND(AVG(mrp),2) AS avg_product_price
 FROM gold_product_catalog
 GROUP BY product_category
@@ -65,7 +65,7 @@ WITH category_sales_data AS (SELECT p.product_category,
 							 LEFT JOIN gold_order_details o
 							 ON p.product_id = o.product_id
 							 GROUP BY p.product_category
-                             )
+                                                         )
                              
 SELECT product_category,
        CONCAT(ROUND(((total_sales-total_cost)/total_sales)*100,2),'%') AS margin_percent
