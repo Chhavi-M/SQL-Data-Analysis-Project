@@ -58,11 +58,11 @@ WITH delivery_distance_summary AS (SELECT distance_km,
                                           WHEN distance_km <=1.5 THEN 'Near-by'
                                           ELSE 'Moderate Distance'
                                           END AS delivery_zone
-                								   FROM gold_order_performance
-                								   GROUP BY 1,2
-                								   )
+                		   FROM gold_order_performance
+                	           GROUP BY 1,2
+                	           )
 SELECT delivery_zone,
-	     delivery_status,
+       delivery_status,
        SUM(order_count) AS total_orders
 FROM delivery_distance_summary
 GROUP BY 1,2
@@ -70,16 +70,16 @@ ORDER BY 1,2;
 
 -- Identify top complaints or praises for each product category
 SELECT * FROM (SELECT p.product_category,
-          					  f.feedback_text,
-          					  COUNT(f.order_id) AS order_count,
-          					  DENSE_RANK() OVER(PARTITION BY product_category ORDER BY COUNT(f.order_id) DESC) as rank_by_volumne
-      			   FROM gold_product_catalog p
-      			   LEFT JOIN gold_order_details o
-      			   ON p.product_id = o.product_id
-      			   LEFT JOIN gold_order_performance f
-      			   ON o.order_id = f.order_id
-      			   GROUP BY 1,2
-      			   ORDER BY 1,2, 3 DESC
+          	      f.feedback_text,
+          	      COUNT(f.order_id) AS order_count,
+          	      DENSE_RANK() OVER(PARTITION BY product_category ORDER BY COUNT(f.order_id) DESC) as rank_by_volumne
+      	       FROM gold_product_catalog p
+      	       LEFT JOIN gold_order_details o
+      	       ON p.product_id = o.product_id
+      	       LEFT JOIN gold_order_performance f
+      	       ON o.order_id = f.order_id
+      	       GROUP BY 1,2
+      	       ORDER BY 1,2, 3 DESC
                )t
 WHERE rank_by_volumne<=5
 ORDER BY product_category, rank_by_volumne;
