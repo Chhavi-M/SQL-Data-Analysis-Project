@@ -9,19 +9,19 @@ Purpose: To rank items (e.g., products, customers) based on performance or other
 
 -- Which 5 products Generates the Highest Revenue?
 SELECT *
-FROM ( SELECT p.product_name,
+FROM (SELECT p.product_name,
               ROUND(SUM(o.quantity_ordered*o.product_mrp),2) AS total_sales,
               DENSE_RANK() OVER (ORDER BY ROUND(SUM(o.quantity_ordered*o.product_mrp),2) DESC) AS rank_of_product
-	     FROM gold_product_catalog p
-       LEFT JOIN gold_order_details o
-       ON p.product_id = o.product_id
-       GROUP BY p.product_name
-       )product_rank
+      FROM gold_product_catalog p
+      LEFT JOIN gold_order_details o
+      ON p.product_id = o.product_id
+      GROUP BY p.product_name
+      )product_rank
 WHERE rank_of_product<=5;
 
 -- What are the 5 worst-performing products in terms of sales?
 SELECT p.product_name,
-	     ROUND(SUM(o.quantity_ordered*o.product_mrp),2) AS total_sales
+       ROUND(SUM(o.quantity_ordered*o.product_mrp),2) AS total_sales
 FROM gold_product_catalog p
 LEFT JOIN gold_order_details o
 ON p.product_id = o.product_id
@@ -32,9 +32,9 @@ LIMIT 5;
 -- What are the top 3 most-revenue generating product categories?
 SELECT *
 FROM (SELECT p.product_category,
-              ROUND(SUM(o.quantity_ordered*o.product_mrp),2) AS total_sales,
-              DENSE_RANK() OVER (ORDER BY ROUND(SUM(o.quantity_ordered*o.product_mrp),2) DESC) AS rank_of_category
-	    FROM gold_product_catalog p
+             ROUND(SUM(o.quantity_ordered*o.product_mrp),2) AS total_sales,
+             DENSE_RANK() OVER (ORDER BY ROUND(SUM(o.quantity_ordered*o.product_mrp),2) DESC) AS rank_of_category
+      FROM gold_product_catalog p
       LEFT JOIN gold_order_details o
       ON p.product_id = o.product_id
       GROUP BY p.product_category
@@ -43,7 +43,7 @@ WHERE rank_of_category<=3;
 
 -- Which product category generates the lowest revenue?
 SELECT p.product_category,
-	     ROUND(SUM(o.quantity_ordered*o.product_mrp),2) AS total_sales
+       ROUND(SUM(o.quantity_ordered*o.product_mrp),2) AS total_sales
 FROM gold_product_catalog p
 LEFT JOIN gold_order_details o
 ON p.product_id = o.product_id
@@ -54,9 +54,9 @@ LIMIT 1;
 -- What are the top 3 most-revenue generating product brands?
 SELECT *
 FROM (SELECT p.product_brand,
-              ROUND(SUM(o.quantity_ordered*o.product_mrp),2) AS total_sales,
-              DENSE_RANK() OVER (ORDER BY ROUND(SUM(o.quantity_ordered*o.product_mrp),2) DESC) AS rank_of_brand
-	    FROM gold_product_catalog p
+             ROUND(SUM(o.quantity_ordered*o.product_mrp),2) AS total_sales,
+             DENSE_RANK() OVER (ORDER BY ROUND(SUM(o.quantity_ordered*o.product_mrp),2) DESC) AS rank_of_brand
+      FROM gold_product_catalog p
       LEFT JOIN gold_order_details o
       ON p.product_id = o.product_id
       GROUP BY p.product_brand
@@ -65,7 +65,7 @@ WHERE rank_of_brand<=3;
 
 -- What are the 5 worst-performing product brands in terms of sales?
 SELECT p.product_brand,
-	     ROUND(SUM(o.quantity_ordered*o.product_mrp),2) AS total_sales
+       ROUND(SUM(o.quantity_ordered*o.product_mrp),2) AS total_sales
 FROM gold_product_catalog p
 LEFT JOIN gold_order_details o
 ON p.product_id = o.product_id
