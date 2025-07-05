@@ -61,11 +61,11 @@ ORDER BY total_revenue DESC;
 WITH category_sales_data AS (SELECT p.product_category, 
                                     ROUND(SUM(o.quantity_ordered*o.product_mrp),2) AS total_sales,
                                     ROUND(SUM(o.quantity_ordered*o.unit_price),2) AS total_cost
-							 FROM gold_product_catalog p
-							 LEFT JOIN gold_order_details o
-							 ON p.product_id = o.product_id
-							 GROUP BY p.product_category
-                                                         )
+			     FROM gold_product_catalog p
+			     LEFT JOIN gold_order_details o
+			     ON p.product_id = o.product_id
+			     GROUP BY p.product_category
+                             )
                              
 SELECT product_category,
        CONCAT(ROUND(((total_sales-total_cost)/total_sales)*100,2),'%') AS margin_percent
