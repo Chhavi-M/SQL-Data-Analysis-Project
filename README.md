@@ -13,3 +13,8 @@ Key highlights include:
 📈 Analytical queries using joins, window functions, and case logic
 
 📊 Analyzing delivery performance and customer feedback to derive insights
+
+
+
+
+Note: The data used is a community-contributed dataset sourced from Kaggle.
